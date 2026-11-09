@@ -1,0 +1,96 @@
+name: Build and publish LeXtudio editor packages
+
+# Builds Microsoft.VisualStudio.CoreUtility / Text.Data / Text.Logic / Text.UI from this MIT-licensed fork for
+# net10.0 and publishes them to the lextudio GitHub Packages feed under the same ids; see lextudio/README.md.
+# Upstream's own workflow (main.yml) is unrelated and untouched.
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['lextudio/**', 'src/Editor/**', '.github/workflows/lextudio-packages.yml']
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths: ['lextudio/**', 'src/Editor/**', '.github/workflows/lextudio-packages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+jobs:
+  validate:
+    name: Validate (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x64
+            runner: windows-2025
+          - name: macos-arm64
+            runner: macos-15
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Prepare GitHub Packages restore access
+        shell: pwsh
+        run: |
+          Copy-Item lextudio/NuGet.config "$env:RUNNER_TEMP/NuGet.config"
+          dotnet nuget update source openavalon-github --username $env:GITHUB_ACTOR --password $env:GITHUB_TOKEN --store-password-in-clear-text --configfile "$env:RUNNER_TEMP/NuGet.config"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pack
+        shell: pwsh
+        run: |
+          foreach ($name in 'CoreUtility', 'Text.Data', 'Text.Logic', 'Text.UI') {
+            dotnet pack "lextudio/$name/LeXtudio.VSEditor.$name.csproj" -c Release -o nupkg --configfile "$env:RUNNER_TEMP/NuGet.config"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          $packages = @(Get-ChildItem nupkg -Filter 'Microsoft.VisualStudio.*.nupkg')
+          if ($packages.Count -ne 4) { throw "Expected 4 packages, found: $($packages.Name -join ', ')." }
+          $versions = @($packages | ForEach-Object { $_.Name -replace '^Microsoft\.VisualStudio\.[A-Za-z.]+?\.(\d+\.\d+\.\d+(\.\d+)?)\.nupkg$', '$1' } | Sort-Object -Unique)
+          if ($versions.Count -ne 1) { throw "The packages disagree on the version: $($versions -join ', ')." }
+          Write-Host "Packed version $($versions[0])"
+      - name: Upload validated packages
+        if: matrix.name == 'windows-x64'
+        uses: actions/upload-artifact@v7
+        with:
+          name: vseditor-nupkg
+          path: nupkg/Microsoft.VisualStudio.*.nupkg
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Packages
+    needs: validate
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    runs-on: windows-2025
+    steps:
+      - name: Download validated packages
+        uses: actions/download-artifact@v8
+        with:
+          name: vseditor-nupkg
+          path: nupkg
+      - name: Verify tag matches package version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $expected = "$env:GITHUB_REF_NAME".Substring(1)
+          foreach ($package in Get-ChildItem nupkg -Filter 'Microsoft.VisualStudio.*.nupkg') {
+            $version = $package.Name -replace '^Microsoft\.VisualStudio\.[A-Za-z.]+?\.(\d+\.\d+\.\d+(\.\d+)?)\.nupkg$', '$1'
+            if ($version -ne $expected) { throw "Tag $env:GITHUB_REF_NAME does not match $($package.Name) (version $version)." }
+          }
+      - name: Push packages
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          foreach ($package in Get-ChildItem nupkg -Filter 'Microsoft.VisualStudio.*.nupkg') {
+            dotnet nuget push $package.FullName --api-key $env:GITHUB_TOKEN --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }

@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Builds Microsoft.VisualStudio.Text.Logic from the MIT-licensed sources in
+       this repository (src/Editor); see README.md for why the
+       NuGet package is not used. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>Microsoft.VisualStudio.Text.Logic</AssemblyName>
+    <RootNamespace>Microsoft.VisualStudio.Text.Logic</RootNamespace>
+    <AssemblyVersion>16.0.0.0</AssemblyVersion>
+    <FileVersion>16.0.0.0</FileVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <PackageId>Microsoft.VisualStudio.Text.Logic</PackageId>
+    <Version>17.3.198.1</Version>
+    <Authors>Microsoft; LeXtudio</Authors>
+    <Description>Microsoft.VisualStudio.Text.Logic built from the MIT-licensed vs-editor-api sources.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/lextudio/vs-editor-api</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/lextudio/vs-editor-api</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+    <NoWarn>$(NoWarn);CS0618;CS1591;CS1572;CS1573;CS0649;CS0414;CS0169;CS3021;SYSLIB0003;SYSLIB0050;SYSLIB0051</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\src\Editor\Text\Def\TextLogic\**\*.cs"
+             Exclude="..\..\src\Editor\Text\Def\TextLogic\**\*AssemblyInfo.cs;..\..\src\Editor\Text\Def\TextLogic\**\bin\**;..\..\src\Editor\Text\Def\TextLogic\**\obj\**"
+             LinkBase="vs-editor-api\Text\Def\TextLogic" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+    <ProjectReference Include="..\CoreUtility\LeXtudio.VSEditor.CoreUtility.csproj" />
+    <ProjectReference Include="..\Text.Data\LeXtudio.VSEditor.Text.Data.csproj" />
+    <PackageReference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+</Project>

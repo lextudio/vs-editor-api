@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Builds Microsoft.VisualStudio.CoreUtility from the MIT-licensed sources in
+       this repository (src/Editor) instead of consuming the NuGet package. The package's
+       LICENSE is "MICROSOFT SOFTWARE LICENSE TERMS - MICROSOFT VISUAL STUDIO ADD-ONs
+       and EXTENSIONS", which limits use to Visual Studio and forbids redistributing it
+       inside another application; the repository it is built from is MIT. See
+       doc/technotes/licensing-audit.md.
+
+       The upstream project targets net472 and pulls the framework's
+       System.ComponentModel.Composition reference; this build only changes the target
+       framework and package references, no source file. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>Microsoft.VisualStudio.CoreUtility</AssemblyName>
+    <RootNamespace>Microsoft.VisualStudio.Utilities</RootNamespace>
+    <AssemblyVersion>16.0.0.0</AssemblyVersion>
+    <FileVersion>16.0.0.0</FileVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <PackageId>Microsoft.VisualStudio.CoreUtility</PackageId>
+    <Version>17.3.198.1</Version>
+    <Authors>Microsoft; LeXtudio</Authors>
+    <Description>Microsoft.VisualStudio.CoreUtility built from the MIT-licensed vs-editor-api sources for net10.0.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/lextudio/vs-editor-api</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/lextudio/vs-editor-api</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+    <NoWarn>$(NoWarn);CS0618;CS1591;CS1572;CS1573;CS0649;CS0414;CS0169;CS3021;SYSLIB0003;SYSLIB0050;SYSLIB0051</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\src\Editor\Core\Def\**\*.cs"
+             Exclude="..\..\src\Editor\Core\Def\**\*AssemblyInfo.cs;..\..\src\Editor\Core\Def\**\bin\**;..\..\src\Editor\Core\Def\**\obj\**"
+             LinkBase="vs-editor-api\Core\Def" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" />
+    <PackageReference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+</Project>

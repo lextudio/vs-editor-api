@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.13.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.13.22" />
+    <PackageVersion Include="System.ComponentModel.Composition" Version="10.0.5" />
+  </ItemGroup>
+</Project>

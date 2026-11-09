@@ -1,0 +1,4 @@
+<Project>
+  <!-- Stops MSBuild from importing the repository root's Directory.Build.props (upstream's Xamarin-era build
+       machinery) for the projects below. -->
+</Project>

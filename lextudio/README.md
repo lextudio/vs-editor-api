@@ -20,5 +20,5 @@ Differences from upstream sources: only `TextDocumentFileActionEventArgs.cs` of 
 `Text.UI` builds through `LibreWPF.Sdk` (see `global.json`).
 
 Build: `dotnet pack lextudio/Text.UI/LeXtudio.VSEditor.Text.UI.csproj -c Release -o nupkg` (restores the other
-three through project references; the LibreWPF packages come from the `openavalon-github` feed, see `NuGet.config`).
+three through project references; the LibreWPF packages come from the `openavalon_github` feed, see `NuGet.config`).
 Publish: `.github/workflows/lextudio-packages.yml` (push of a `v*` tag, or manual dispatch).

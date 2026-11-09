@@ -20,6 +20,9 @@ permissions:
 
 env:
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+  # Read by NuGet for every restore, including the MSBuild SDK resolver (LibreWPF.Sdk), which ignores --configfile.
+  # The key has no dash: NuGet builds this variable name from it, and a dash is not portable on Linux/macOS.
+  NuGetPackageSourceCredentials_openavalon_github: Username=${{ github.actor }};Password=${{ secrets.GITHUB_TOKEN }};ValidAuthenticationTypes=Basic
 
 jobs:
   validate:
@@ -38,18 +41,11 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
-      - name: Prepare GitHub Packages restore access
-        shell: pwsh
-        run: |
-          Copy-Item lextudio/NuGet.config "$env:RUNNER_TEMP/NuGet.config"
-          dotnet nuget update source openavalon-github --username $env:GITHUB_ACTOR --password $env:GITHUB_TOKEN --store-password-in-clear-text --configfile "$env:RUNNER_TEMP/NuGet.config"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Pack
         shell: pwsh
         run: |
           foreach ($name in 'CoreUtility', 'Text.Data', 'Text.Logic', 'Text.UI') {
-            dotnet pack "lextudio/$name/LeXtudio.VSEditor.$name.csproj" -c Release -o nupkg --configfile "$env:RUNNER_TEMP/NuGet.config"
+            dotnet pack "lextudio/$name/LeXtudio.VSEditor.$name.csproj" -c Release -o nupkg
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
           $packages = @(Get-ChildItem nupkg -Filter 'Microsoft.VisualStudio.*.nupkg')
